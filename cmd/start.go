@@ -1,80 +1,97 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 var (
-	watch bool
-	debug bool
+	watchFlag bool
+	debugFlag bool
 )
 
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start the meba application",
-	Long:  `Start the meba application in production or development mode with hot reload.`,
+	Short: "Start the application",
+	Long:  "Start the application in production mode or with live-reload",
 	Run: func(cmd *cobra.Command, args []string) {
-		if watch {
-			startWithAir()
+		if watchFlag {
+			startWithWatch()
 		} else {
 			startProduction()
 		}
 	},
 }
 
-func startWithAir() {
-	// Check if .air.toml exists
-	if _, err := os.Stat(".air.toml"); os.IsNotExist(err) {
-		color.Yellow("⚠️  .air.toml not found, creating default configuration...")
-		createAirConfig()
-	}
+func init() {
+	rootCmd.AddCommand(startCmd)
+	startCmd.Flags().BoolVarP(&watchFlag, "watch", "w", false, "Start with live-reload using Air")
+	startCmd.Flags().BoolVar(&debugFlag, "debug", false, "Enable debug mode")
+}
 
-	color.Blue("🚀 Starting development server with hot reload...")
+func startProduction() {
+	fmt.Println("🚀 Starting in production mode...")
 	
-	cmd := exec.Command("air")
-	if debug {
-		cmd.Args = append(cmd.Args, "-d")
+	// Build first
+	if err := buildApp(); err != nil {
+		fmt.Printf("❌ Build failed: %v\n", err)
+		os.Exit(1)
 	}
 	
+	// Run the binary
+	binaryPath := "./server"
+	if _, err := os.Stat("./dist/server"); err == nil {
+		binaryPath = "./dist/server"
+	}
+	
+	cmd := exec.Command(binaryPath)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
+	
 	if err := cmd.Run(); err != nil {
-		color.Red("Error starting with air: %v", err)
-		color.Yellow("Make sure 'air' is installed: go install github.com/cosmtrek/air@latest")
+		fmt.Printf("❌ Failed to start server: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func startProduction() {
-	color.Blue("🚀 Starting production server...")
+func startWithWatch() {
+	fmt.Println("🔥 Starting with live-reload...")
 	
-	// Build first
-	buildCmd := exec.Command("go", "build", "-o", "bin/server", "./cmd/server")
-	if err := buildCmd.Run(); err != nil {
-		color.Red("Error building application: %v", err)
-		os.Exit(1)
+	// Check if .air.toml exists, create if not
+	if _, err := os.Stat(".air.toml"); os.IsNotExist(err) {
+		createAirConfig()
 	}
-
-	// Run the built binary
-	runCmd := exec.Command("./bin/server")
-	runCmd.Stdout = os.Stdout
-	runCmd.Stderr = os.Stderr
-	runCmd.Stdin = os.Stdin
-
-	if err := runCmd.Run(); err != nil {
-		color.Red("Error running application: %v", err)
+	
+	// Auto-generate wire before starting
+	fmt.Println("🔧 Generating wire dependencies...")
+	wireCmd := exec.Command("wire", "./internal")
+	wireCmd.Stdout = os.Stdout
+	wireCmd.Stderr = os.Stderr
+	wireCmd.Run() // Don't fail if wire fails
+	
+	// Start air
+	args := []string{}
+	if debugFlag {
+		fmt.Println("🐛 Debug mode enabled")
+		args = append(args, "-d")
+	}
+	
+	cmd := exec.Command("air", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("❌ Failed to start with Air: %v\n", err)
+		fmt.Println("💡 Make sure Air is installed: go install github.com/cosmtrek/air@latest")
 		os.Exit(1)
 	}
 }
 
 func createAirConfig() {
-	airConfig := `root = "."
+	config := `root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
 
@@ -119,19 +136,8 @@ tmp_dir = "tmp"
   clear_on_rebuild = false
   keep_scroll = true
 `
-
-	if err := os.WriteFile(".air.toml", []byte(airConfig), 0644); err != nil {
-		color.Red("Error creating .air.toml: %v", err)
-		return
-	}
 	
-	// Create tmp directory
-	os.MkdirAll("tmp", 0755)
-	color.Green("✅ Created .air.toml configuration")
-}
-
-func init() {
-	rootCmd.AddCommand(startCmd)
-	startCmd.Flags().BoolVar(&watch, "watch", false, "Start with hot reload using air")
-	startCmd.Flags().BoolVar(&debug, "debug", false, "Start in debug mode")
+	if err := os.WriteFile(".air.toml", []byte(config), 0644); err != nil {
+		fmt.Printf("Warning: Could not create .air.toml: %v\n", err)
+	}
 }

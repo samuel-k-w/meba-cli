@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -33,11 +32,14 @@ func CreateProject(name, targetDir string, skipGit bool) error {
 		}
 	}
 
+	// Get module name (will be updated by git init)
+	moduleName := name
+	
 	// Generate files
 	files := map[string]string{
-		"go.mod":                    templates.GoMod(name),
+		"go.mod":                    templates.GoMod(moduleName),
 		"README.md":                 templates.ReadmeMd(name),
-		"cmd/server/main.go":        templates.MainGo(name),
+		"cmd/server/main.go":        templates.MainGo(moduleName),
 		"internal/app.go":           templates.AppGo(),
 		"internal/handlers.go":      templates.HandlersGo(),
 		"internal/service.go":       templates.ServiceGo(),
@@ -69,11 +71,14 @@ func CreateProject(name, targetDir string, skipGit bool) error {
 
 	// Initialize git repository
 	if !skipGit {
-		cmd := exec.Command("git", "init")
-		cmd.Dir = targetDir
-		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to initialize git repository: %w", err)
+		if err := initGitRepo(targetDir, name); err != nil {
+			fmt.Printf("Warning: Could not initialize git repository: %v\n", err)
 		}
+	}
+
+	// Run go mod tidy
+	if err := runGoModTidy(targetDir); err != nil {
+		fmt.Printf("Warning: Could not run go mod tidy: %v\n", err)
 	}
 
 	return nil

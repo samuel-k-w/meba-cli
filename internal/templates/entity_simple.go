@@ -29,7 +29,7 @@ type %s struct {
 
 // TableName returns the table name for %s
 func (e %s) TableName() string {
-	return "%ss"
+	return "%s"
 }
 
 // BeforeCreate hook
@@ -43,5 +43,5 @@ func (e *%s) BeforeUpdate(tx *gorm.DB) error {
 	// Add any pre-update logic here
 	return nil
 }
-`, name, titleName, name, titleName, name, titleName, titleName, name, titleName, titleName)
+`, name, titleName, name, titleName, name, titleName, titleName, titleName, titleName, titleName)
 }
