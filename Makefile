@@ -1,96 +1,39 @@
-# Meba CLI Makefile
+VERSION ?= $(shell git describe --tags --always --dirty)
+LDFLAGS = -ldflags "-X github.com/meba-cli/meba/cmd.version=$(VERSION)"
 
-.PHONY: build install clean test lint fmt help
-
-# Variables
-BINARY_NAME=meba
-BUILD_DIR=bin
-MAIN_PATH=./main.go
-
-# Default target
-help: ## Show this help message
-	@echo "Meba CLI - Build Commands"
-	@echo "========================="
-	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
-
-build: ## Build the binary
+.PHONY: build
+build:
 	@echo "🔨 Building meba CLI..."
-	@mkdir -p $(BUILD_DIR)
-	@go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PATH)
-	@echo "✅ Build completed: $(BUILD_DIR)/$(BINARY_NAME)"
+	@go build $(LDFLAGS) -o bin/meba ./cmd/meba
+	@echo ""
+	@echo "✅ Build completed: bin/meba"
 
-install: build ## Install the binary to GOPATH/bin
+.PHONY: build-all
+build-all:
+	@echo "🔨 Building for all platforms..."
+	@mkdir -p dist
+	@GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/meba-linux-amd64 ./cmd/meba
+	@GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/meba-darwin-amd64 ./cmd/meba
+	@GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/meba-darwin-arm64 ./cmd/meba
+	@GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/meba-windows-amd64.exe ./cmd/meba
+	@echo "✅ All binaries built in dist/"
+
+.PHONY: install
+install: build
 	@echo "📦 Installing meba CLI..."
-	@go install $(MAIN_PATH)
-	@echo "✅ Meba CLI installed successfully!"
-	@echo "💡 You can now use 'meba' command globally"
+	@sudo cp bin/meba /usr/local/bin/
+	@echo "✅ Installed to /usr/local/bin/meba"
 
-clean: ## Clean build artifacts
-	@echo "🧹 Cleaning build artifacts..."
-	@rm -rf $(BUILD_DIR)
-	@go clean
-	@echo "✅ Clean completed"
+.PHONY: test
+test:
+	@go test ./...
 
-test: ## Run tests
-	@echo "🧪 Running tests..."
-	@go test -v ./...
-	@echo "✅ Tests completed"
+.PHONY: clean
+clean:
+	@rm -rf bin/ dist/
 
-test-coverage: ## Run tests with coverage
-	@echo "🧪 Running tests with coverage..."
-	@go test -v -coverprofile=coverage.out ./...
-	@go tool cover -html=coverage.out -o coverage.html
-	@echo "✅ Tests completed with coverage report: coverage.html"
-
-lint: ## Run linter
-	@echo "🔍 Running linter..."
-	@if command -v golangci-lint >/dev/null 2>&1; then \
-		golangci-lint run; \
-	else \
-		echo "⚠️  golangci-lint not installed. Install with: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"; \
-	fi
-
-fmt: ## Format code
-	@echo "🎨 Formatting code..."
-	@go fmt ./...
-	@echo "✅ Code formatted"
-
-deps: ## Download dependencies
-	@echo "📥 Downloading dependencies..."
-	@go mod download
-	@go mod tidy
-	@echo "✅ Dependencies updated"
-
-dev-setup: ## Setup development environment
-	@echo "🛠️  Setting up development environment..."
-	@go mod download
-	@go install github.com/cosmtrek/air@latest
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@go install github.com/swaggo/swag/cmd/swag@latest
-	@echo "✅ Development environment ready!"
-
-release: clean test build ## Build release version
-	@echo "🚀 Building release..."
-	@mkdir -p $(BUILD_DIR)/release
-	@GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o $(BUILD_DIR)/release/$(BINARY_NAME)-linux-amd64 $(MAIN_PATH)
-	@GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o $(BUILD_DIR)/release/$(BINARY_NAME)-darwin-amd64 $(MAIN_PATH)
-	@GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o $(BUILD_DIR)/release/$(BINARY_NAME)-darwin-arm64 $(MAIN_PATH)
-	@GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o $(BUILD_DIR)/release/$(BINARY_NAME)-windows-amd64.exe $(MAIN_PATH)
-	@echo "✅ Release builds completed in $(BUILD_DIR)/release/"
-
-docker-build: ## Build Docker image
-	@echo "🐳 Building Docker image..."
-	@docker build -t meba-cli:latest .
-	@echo "✅ Docker image built: meba-cli:latest"
-
-# Development commands
-run-example: ## Run example generation
-	@echo "🎯 Running example generation..."
-	@mkdir -p tmp/example
-	@cd tmp/example && ../../$(BUILD_DIR)/$(BINARY_NAME) new test-app
-	@echo "✅ Example project created in tmp/example/test-app"
-
-check: fmt lint test ## Run all checks (format, lint, test)
-	@echo "✅ All checks passed!"
-
-.DEFAULT_GOAL := help
+.PHONY: release
+release:
+	@echo "🚀 Creating release..."
+	@git tag -a v$(VERSION) -m "Release v$(VERSION)"
+	@git push origin v$(VERSION)

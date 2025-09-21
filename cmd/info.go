@@ -51,9 +51,10 @@ func showInfo() {
 	showDevTools()
 }
 
+var version = "dev"
+
 func getVersion() string {
-	// This would be set during build
-	return "1.0.0" // TODO: Set from build flags
+	return version
 }
 
 func showGoModuleInfo() {
