@@ -1,4 +1,4 @@
-module github.com/meba-cli/meba
+module github.com/samuel-k-w/meba-cli
 
 go 1.21
 

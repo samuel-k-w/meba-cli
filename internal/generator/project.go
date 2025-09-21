@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/meba-cli/meba/internal/templates"
+	"github.com/samuel-k-w/meba-cli/internal/templates"
 )
 
 func CreateProject(name, targetDir string, skipGit, skipInstall bool) error {

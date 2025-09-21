@@ -1,5 +1,5 @@
 VERSION ?= $(shell git describe --tags --always --dirty)
-LDFLAGS = -ldflags "-X github.com/meba-cli/meba/cmd.version=$(VERSION)"
+LDFLAGS = -ldflags "-X github.com/samuel-k-w/meba-cli/cmd.version=$(VERSION)"
 
 .PHONY: build
 build:

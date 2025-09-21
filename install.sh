@@ -4,7 +4,7 @@ set -e
 
 # Meba CLI Installation Script
 
-REPO="meba-cli/meba"
+REPO="samuel-k-w/meba-cli"
 BINARY_NAME="meba"
 INSTALL_DIR="/usr/local/bin"
 

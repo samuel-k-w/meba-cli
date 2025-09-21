@@ -6,17 +6,17 @@ A powerful CLI tool for generating Gin API projects inspired by NestJS architect
 
 ### One-line install (Linux/macOS):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/meba-cli/meba/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/samuel-k-w/meba-cli/main/install.sh | bash
 ```
 
 ### Manual install:
 ```bash
-go install github.com/meba-cli/meba/cmd/meba@latest
+go install github.com/samuel-k-w/meba-cli/cmd/meba@latest
 ```
 
 ### From source:
 ```bash
-git clone https://github.com/meba-cli/meba.git
+git clone https://github.com/samuel-k-w/meba-cli.git
 cd meba
 make install
 ```

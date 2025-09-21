@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/meba-cli/meba/internal/generator"
+	"github.com/samuel-k-w/meba-cli/internal/generator"
 	"github.com/spf13/cobra"
 )
 
