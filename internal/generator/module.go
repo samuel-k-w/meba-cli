@@ -28,21 +28,11 @@ func GenerateModule(name string, dryRun, flat bool) error {
 		return fmt.Errorf("failed to create module directory: %w", err)
 	}
 
-	// Generate module files
-	files := map[string]string{
-		"module.go":     templates.ModuleGo(name),
-		"handlers.go":   templates.ModuleHandlersGo(name),
-		"service.go":    templates.ModuleServiceGoSimple(name),
-		"repository.go": templates.ModuleRepositoryGoSimple(name),
-		"entity.go":     templates.ModuleEntityGoSimple(name),
-		"dto.go":        templates.ModuleDtoGoSimple(name),
-	}
-
-	for fileName, content := range files {
-		filePath := filepath.Join(modulePath, fileName)
-		if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
-			return fmt.Errorf("failed to write file %s: %w", fileName, err)
-		}
+	// Generate only module.go file
+	content := templates.MinimalModuleGo(name)
+	filePath := filepath.Join(modulePath, "module.go")
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		return fmt.Errorf("failed to write module.go: %w", err)
 	}
 
 	// Update app.go to register the module
@@ -69,7 +59,7 @@ func GenerateHandler(name string, dryRun, flat, noSpec bool) error {
 		return nil
 	}
 
-	content := templates.ModuleHandlersGo(name)
+	content := templates.MinimalHandlersGo(name)
 	filePath := filepath.Join(modulePath, "handlers.go")
 	
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
@@ -98,7 +88,7 @@ func GenerateService(name string, dryRun, flat, noSpec bool) error {
 		return nil
 	}
 
-	content := templates.ModuleServiceGoSimple(name)
+	content := templates.MinimalServiceGo(name)
 	filePath := filepath.Join(modulePath, "service.go")
 	
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
@@ -127,7 +117,7 @@ func GenerateRepository(name string, dryRun, flat, noSpec bool) error {
 		return nil
 	}
 
-	content := templates.ModuleRepositoryGoSimple(name)
+	content := templates.MinimalRepositoryGo(name)
 	filePath := filepath.Join(modulePath, "repository.go")
 	
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
@@ -143,27 +133,39 @@ func GenerateRepository(name string, dryRun, flat, noSpec bool) error {
 }
 
 func GenerateResource(name string, dryRun bool) error {
+	var modulePath string
+	modulePath = filepath.Join("internal", name)
+
 	if dryRun {
 		fmt.Printf("Would create complete CRUD resource for: %s\n", name)
 		return nil
 	}
 
-	// Generate module first
-	if err := GenerateModule(name, false, false); err != nil {
-		return err
+	// Create module directory
+	if err := os.MkdirAll(modulePath, 0755); err != nil {
+		return fmt.Errorf("failed to create module directory: %w", err)
 	}
 
-	// Generate all components
-	if err := GenerateHandler(name, false, false, false); err != nil {
-		return err
+	// Generate complete resource files
+	files := map[string]string{
+		"module.go":     templates.ModuleGo(name),
+		"handlers.go":   templates.ModuleHandlersGo(name),
+		"service.go":    templates.ModuleServiceGoSimple(name),
+		"repository.go": templates.ModuleRepositoryGoSimple(name),
+		"entity.go":     templates.ModuleEntityGoSimple(name),
+		"dto.go":        templates.ModuleDtoGoSimple(name),
 	}
-	
-	if err := GenerateService(name, false, false, false); err != nil {
-		return err
+
+	for fileName, content := range files {
+		filePath := filepath.Join(modulePath, fileName)
+		if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+			return fmt.Errorf("failed to write file %s: %w", fileName, err)
+		}
 	}
-	
-	if err := GenerateRepository(name, false, false, false); err != nil {
-		return err
+
+	// Update app.go to register the module
+	if err := updateAppModule(name); err != nil {
+		fmt.Printf("Warning: Could not auto-register module in app.go: %v\n", err)
 	}
 
 	return nil
@@ -233,16 +235,32 @@ func updateModuleFile(modulePath, moduleName, componentType string) error {
 	updatedContent := string(content)
 	
 	// Add component to wire.NewSet
-	componentName := fmt.Sprintf("New%s%s", strings.Title(moduleName), strings.Title(componentType))
+	var componentName string
+	if componentType == "handler" {
+		componentName = fmt.Sprintf("New%sHandlers", strings.Title(moduleName))
+	} else {
+		componentName = fmt.Sprintf("New%s%s", strings.Title(moduleName), strings.Title(componentType))
+	}
 	if !strings.Contains(updatedContent, componentName) {
 		// Find wire.NewSet and add component
 		wireIndex := strings.Index(updatedContent, "wire.NewSet(")
 		if wireIndex != -1 {
-			endIndex := strings.Index(updatedContent[wireIndex:], ")")
-			if endIndex != -1 {
-				insertPos := wireIndex + endIndex
-				addition := fmt.Sprintf("\n\t%s,", componentName)
-				updatedContent = updatedContent[:insertPos] + addition + updatedContent[insertPos:]
+			// Check if it's empty wire.NewSet()
+			endPos := wireIndex + 20
+			if endPos > len(updatedContent) {
+				endPos = len(updatedContent)
+			}
+			if strings.Contains(updatedContent[wireIndex:endPos], "wire.NewSet()") {
+				// Replace empty set with component
+				updatedContent = strings.Replace(updatedContent, "wire.NewSet()", fmt.Sprintf("wire.NewSet(\n\t%s,\n)", componentName), 1)
+			} else {
+				// Add to existing set
+				endIndex := strings.Index(updatedContent[wireIndex:], ")")
+				if endIndex != -1 {
+					insertPos := wireIndex + endIndex
+					addition := fmt.Sprintf("\n\t%s,", componentName)
+					updatedContent = updatedContent[:insertPos] + addition + updatedContent[insertPos:]
+				}
 			}
 		}
 	}
