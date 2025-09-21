@@ -87,7 +87,7 @@ var resourceCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
-		if err := generator.GenerateResource(name, dryRun); err != nil {
+		if err := generator.GenerateResource(name, dryRun, noSpec); err != nil {
 			color.Red("Error generating resource: %v", err)
 			os.Exit(1)
 		}

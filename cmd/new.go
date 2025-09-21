@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	skipGit   bool
-	directory string
+	skipGit     bool
+	skipInstall bool
+	directory   string
 )
 
 var newCmd = &cobra.Command{
@@ -27,7 +28,7 @@ var newCmd = &cobra.Command{
 			targetDir = projectName
 		}
 
-		if err := generator.CreateProject(projectName, targetDir, skipGit); err != nil {
+		if err := generator.CreateProject(projectName, targetDir, skipGit, skipInstall); err != nil {
 			color.Red("Error creating project: %v", err)
 			os.Exit(1)
 		}
@@ -43,5 +44,6 @@ var newCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(newCmd)
 	newCmd.Flags().BoolVar(&skipGit, "skip-git", false, "Skip git repository initialization")
+	newCmd.Flags().BoolVar(&skipInstall, "skip-install", false, "Skip go mod tidy during project creation")
 	newCmd.Flags().StringVar(&directory, "directory", "", "Specify directory name for the project")
 }

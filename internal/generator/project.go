@@ -9,7 +9,7 @@ import (
 	"github.com/meba-cli/meba/internal/templates"
 )
 
-func CreateProject(name, targetDir string, skipGit bool) error {
+func CreateProject(name, targetDir string, skipGit, skipInstall bool) error {
 	// Create project directory
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
@@ -78,9 +78,11 @@ func CreateProject(name, targetDir string, skipGit bool) error {
 		}
 	}
 
-	// Run go mod tidy
-	if err := runGoModTidy(targetDir); err != nil {
-		fmt.Printf("Warning: Could not run go mod tidy: %v\n", err)
+	// Run go mod tidy unless --skip-install
+	if !skipInstall {
+		if err := runGoModTidy(targetDir); err != nil {
+			fmt.Printf("Warning: Could not run go mod tidy: %v\n", err)
+		}
 	}
 
 	return nil

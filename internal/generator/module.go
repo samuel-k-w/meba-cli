@@ -56,6 +56,9 @@ func GenerateHandler(name string, dryRun, flat, noSpec bool) error {
 
 	if dryRun {
 		fmt.Printf("Would create handler at: %s/handlers.go\n", modulePath)
+		if !noSpec {
+			fmt.Printf("Would create test at: %s/handlers_test.go\n", modulePath)
+		}
 		return nil
 	}
 
@@ -66,11 +69,13 @@ func GenerateHandler(name string, dryRun, flat, noSpec bool) error {
 		return fmt.Errorf("failed to write handler file: %w", err)
 	}
 	
-	// Create test file
-	testContent := templates.HandlersTestGoModule(name)
-	testFilePath := filepath.Join(modulePath, "handlers_test.go")
-	if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
-		return fmt.Errorf("failed to write handlers_test.go: %w", err)
+	// Create test file unless --no-spec
+	if !noSpec {
+		testContent := templates.HandlersTestGoModule(name)
+		testFilePath := filepath.Join(modulePath, "handlers_test.go")
+		if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
+			return fmt.Errorf("failed to write handlers_test.go: %w", err)
+		}
 	}
 
 	// Update module.go to include handler
@@ -92,6 +97,9 @@ func GenerateService(name string, dryRun, flat, noSpec bool) error {
 
 	if dryRun {
 		fmt.Printf("Would create service at: %s/service.go\n", modulePath)
+		if !noSpec {
+			fmt.Printf("Would create test at: %s/service_test.go\n", modulePath)
+		}
 		return nil
 	}
 
@@ -102,11 +110,13 @@ func GenerateService(name string, dryRun, flat, noSpec bool) error {
 		return fmt.Errorf("failed to write service file: %w", err)
 	}
 	
-	// Create test file
-	testContent := templates.ServiceTestGoModule(name)
-	testFilePath := filepath.Join(modulePath, "service_test.go")
-	if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
-		return fmt.Errorf("failed to write service_test.go: %w", err)
+	// Create test file unless --no-spec
+	if !noSpec {
+		testContent := templates.ServiceTestGoModule(name)
+		testFilePath := filepath.Join(modulePath, "service_test.go")
+		if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
+			return fmt.Errorf("failed to write service_test.go: %w", err)
+		}
 	}
 
 	// Update module.go to include service
@@ -128,6 +138,9 @@ func GenerateRepository(name string, dryRun, flat, noSpec bool) error {
 
 	if dryRun {
 		fmt.Printf("Would create repository at: %s/repository.go\n", modulePath)
+		if !noSpec {
+			fmt.Printf("Would create test at: %s/repository_test.go\n", modulePath)
+		}
 		return nil
 	}
 
@@ -138,11 +151,13 @@ func GenerateRepository(name string, dryRun, flat, noSpec bool) error {
 		return fmt.Errorf("failed to write repository file: %w", err)
 	}
 	
-	// Create test file
-	testContent := templates.RepositoryTestGoModule(name)
-	testFilePath := filepath.Join(modulePath, "repository_test.go")
-	if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
-		return fmt.Errorf("failed to write repository_test.go: %w", err)
+	// Create test file unless --no-spec
+	if !noSpec {
+		testContent := templates.RepositoryTestGoModule(name)
+		testFilePath := filepath.Join(modulePath, "repository_test.go")
+		if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
+			return fmt.Errorf("failed to write repository_test.go: %w", err)
+		}
 	}
 
 	// Update module.go to include repository
@@ -153,12 +168,16 @@ func GenerateRepository(name string, dryRun, flat, noSpec bool) error {
 	return nil
 }
 
-func GenerateResource(name string, dryRun bool) error {
+func GenerateResource(name string, dryRun, noSpec bool) error {
 	var modulePath string
 	modulePath = filepath.Join("internal", name)
 
 	if dryRun {
 		fmt.Printf("Would create complete CRUD resource for: %s\n", name)
+		fmt.Printf("Files: module.go, handlers.go, service.go, repository.go, entity.go, dto.go\n")
+		if !noSpec {
+			fmt.Printf("Test files: handlers_test.go, service_test.go, repository_test.go\n")
+		}
 		return nil
 	}
 
@@ -169,15 +188,19 @@ func GenerateResource(name string, dryRun bool) error {
 
 	// Generate complete resource files
 	files := map[string]string{
-		"module.go":         templates.ModuleGo(name),
-		"handlers.go":       templates.ModuleHandlersGo(name),
-		"handlers_test.go":  templates.HandlersTestGoModule(name),
-		"service.go":        templates.ModuleServiceGoSimple(name),
-		"service_test.go":   templates.ServiceTestGoModule(name),
-		"repository.go":     templates.ModuleRepositoryGoSimple(name),
-		"repository_test.go": templates.RepositoryTestGoModule(name),
-		"entity.go":         templates.ModuleEntityGoSimple(name),
-		"dto.go":            templates.ModuleDtoGoSimple(name),
+		"module.go":     templates.ModuleGo(name),
+		"handlers.go":   templates.ModuleHandlersGo(name),
+		"service.go":    templates.ModuleServiceGoSimple(name),
+		"repository.go": templates.ModuleRepositoryGoSimple(name),
+		"entity.go":     templates.ModuleEntityGoSimple(name),
+		"dto.go":        templates.ModuleDtoGoSimple(name),
+	}
+	
+	// Add test files unless --no-spec
+	if !noSpec {
+		files["handlers_test.go"] = templates.HandlersTestGoModule(name)
+		files["service_test.go"] = templates.ServiceTestGoModule(name)
+		files["repository_test.go"] = templates.RepositoryTestGoModule(name)
 	}
 
 	for fileName, content := range files {

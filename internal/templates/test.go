@@ -4,8 +4,8 @@ func HandlersTestGo() string {
 	return `package internal
 
 import (
-	"net/http"
-	"net/http/httptest"
+	//"net/http"
+	//"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
