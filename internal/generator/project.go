@@ -105,33 +105,30 @@ func updateAppModule(moduleName string) error {
 		return err
 	}
 
-	// Add import and registration logic
 	updatedContent := string(content)
 	
 	// Add import
-	importLine := fmt.Sprintf("\t\"%s/%s\"\n", getCurrentModuleName(), moduleName)
+	importLine := fmt.Sprintf("\t\"%s/internal/%s\"", getCurrentModuleName(), moduleName)
 	if !strings.Contains(updatedContent, importLine) {
-		// Find imports section and add
 		importIndex := strings.Index(updatedContent, "import (")
 		if importIndex != -1 {
 			endIndex := strings.Index(updatedContent[importIndex:], ")")
 			if endIndex != -1 {
 				insertPos := importIndex + endIndex
-				updatedContent = updatedContent[:insertPos] + importLine + updatedContent[insertPos:]
+				updatedContent = updatedContent[:insertPos] + "\n\t\"" + getCurrentModuleName() + "/internal/" + moduleName + "\"" + updatedContent[insertPos:]
 			}
 		}
 	}
 
 	// Add module registration
-	regLine := fmt.Sprintf("\t%s.Module,\n", strings.Title(moduleName))
+	regLine := fmt.Sprintf("\t%s.Module,", moduleName)
 	if !strings.Contains(updatedContent, regLine) {
-		// Find wire.NewSet and add
 		wireIndex := strings.Index(updatedContent, "wire.NewSet(")
 		if wireIndex != -1 {
 			endIndex := strings.Index(updatedContent[wireIndex:], ")")
 			if endIndex != -1 {
 				insertPos := wireIndex + endIndex
-				updatedContent = updatedContent[:insertPos] + regLine + updatedContent[insertPos:]
+				updatedContent = updatedContent[:insertPos] + "\n\t" + moduleName + ".Module," + "\n" + updatedContent[insertPos:]
 			}
 		}
 	}
