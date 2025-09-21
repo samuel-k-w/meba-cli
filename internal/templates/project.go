@@ -134,9 +134,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"%s/internal"
-	"%s/docs"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/files"
+	_ "%s/docs"
 )
 
 // @title %s API
@@ -170,10 +168,7 @@ func main() {
 	}
 	defer cleanup()
 
-	// Setup Swagger
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(files.Handler))
-
-	// Setup routes
+	// Setup routes (includes Swagger)
 	app.SetupRoutes(r)
 
 	// Start server
@@ -226,6 +221,8 @@ func HandlersGo() string {
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	swaggerFiles "github.com/swaggo/files"
 )
 
 // Handlers aggregates all handler modules
@@ -241,6 +238,9 @@ func NewHandlers() *Handlers {
 
 // SetupRoutes configures all routes
 func (h *Handlers) SetupRoutes(r *gin.Engine) {
+	// Setup Swagger UI
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	
 	api := r.Group("/api/v1")
 	
 	// Health check
