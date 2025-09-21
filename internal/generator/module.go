@@ -32,10 +32,10 @@ func GenerateModule(name string, dryRun, flat bool) error {
 	files := map[string]string{
 		"module.go":     templates.ModuleGo(name),
 		"handlers.go":   templates.ModuleHandlersGo(name),
-		"service.go":    templates.ModuleServiceGo(name),
-		"repository.go": templates.ModuleRepositoryGo(name),
-		"entity.go":     templates.ModuleEntityGo(name),
-		"dto.go":        templates.ModuleDtoGo(name),
+		"service.go":    templates.ModuleServiceGoSimple(name),
+		"repository.go": templates.ModuleRepositoryGoSimple(name),
+		"entity.go":     templates.ModuleEntityGoSimple(name),
+		"dto.go":        templates.ModuleDtoGoSimple(name),
 	}
 
 	for fileName, content := range files {
@@ -98,7 +98,7 @@ func GenerateService(name string, dryRun, flat, noSpec bool) error {
 		return nil
 	}
 
-	content := templates.ModuleServiceGo(name)
+	content := templates.ModuleServiceGoSimple(name)
 	filePath := filepath.Join(modulePath, "service.go")
 	
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
@@ -127,7 +127,7 @@ func GenerateRepository(name string, dryRun, flat, noSpec bool) error {
 		return nil
 	}
 
-	content := templates.ModuleRepositoryGo(name)
+	content := templates.ModuleRepositoryGoSimple(name)
 	filePath := filepath.Join(modulePath, "repository.go")
 	
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {

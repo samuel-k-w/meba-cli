@@ -243,7 +243,7 @@ func (h *Handlers) Delete(c *gin.Context) {
 		"message": "%s deleted successfully",
 	})
 }
-`, name, name, titleName, titleName, name, name, name, name, name, name, name, name, name, name, name, name, name, titleName, name, titleName, name, name, titleName, titleName, name, titleName, name, titleName, name, name, titleName, name, titleName, titleName, name, titleName, name, titleName, name, name, titleName, name, titleName, name, titleName)
+`, name, name, titleName, titleName, name, name, name, name, name, name, name, name, name, name, name, name, name, titleName, name, titleName, name, name, titleName, titleName, name, titleName, name, titleName, name, name, titleName, name, titleName, titleName, name, titleName, name, titleName, name, name, titleName, name, titleName, titleName, titleName)
 }
 
 func ModuleServiceGo(name string) string {
@@ -445,13 +445,13 @@ func (%s) TableName() string {
 }
 
 // BeforeCreate hook
-func (%s *%s) BeforeCreate(tx *gorm.DB) error {
+func (e *%s) BeforeCreate(tx *gorm.DB) error {
 	// Add any pre-creation logic here
 	return nil
 }
 
 // BeforeUpdate hook
-func (%s *%s) BeforeUpdate(tx *gorm.DB) error {
+func (e *%s) BeforeUpdate(tx *gorm.DB) error {
 	// Add any pre-update logic here
 	return nil
 }

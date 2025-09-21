@@ -37,14 +37,14 @@ func CreateProject(name, targetDir string, skipGit bool) error {
 	files := map[string]string{
 		"go.mod":                    templates.GoMod(name),
 		"README.md":                 templates.ReadmeMd(name),
-		"cmd/server/main.go":        templates.MainGo(),
+		"cmd/server/main.go":        templates.MainGo(name),
 		"internal/app.go":           templates.AppGo(),
 		"internal/handlers.go":      templates.HandlersGo(),
 		"internal/service.go":       templates.ServiceGo(),
 		"internal/entity.go":        templates.EntityGo(),
 		"internal/dto.go":           templates.DtoGo(),
 		"internal/repository.go":    templates.RepositoryGo(),
-		"internal/wire.go":          templates.WireGo(),
+		"internal/wire.go":         templates.WireGo(),
 		"pkg/middleware/logger.go":  templates.LoggerMiddleware(),
 		"pkg/middleware/recover.go": templates.RecoverMiddleware(),
 		"pkg/middleware/auth.go":    templates.AuthMiddleware(),
@@ -108,27 +108,27 @@ func updateAppModule(moduleName string) error {
 	updatedContent := string(content)
 	
 	// Add import
-	importLine := fmt.Sprintf("\t\"%s/internal/%s\"", getCurrentModuleName(), moduleName)
+	importLine := fmt.Sprintf("\"%s/internal/%s\"", getCurrentModuleName(), moduleName)
 	if !strings.Contains(updatedContent, importLine) {
 		importIndex := strings.Index(updatedContent, "import (")
 		if importIndex != -1 {
 			endIndex := strings.Index(updatedContent[importIndex:], ")")
 			if endIndex != -1 {
 				insertPos := importIndex + endIndex
-				updatedContent = updatedContent[:insertPos] + "\n\t\"" + getCurrentModuleName() + "/internal/" + moduleName + "\"" + updatedContent[insertPos:]
+				updatedContent = updatedContent[:insertPos] + "\n\t" + importLine + updatedContent[insertPos:]
 			}
 		}
 	}
 
 	// Add module registration
-	regLine := fmt.Sprintf("\t%s.Module,", moduleName)
+	regLine := fmt.Sprintf("%s.Module,", moduleName)
 	if !strings.Contains(updatedContent, regLine) {
-		wireIndex := strings.Index(updatedContent, "wire.NewSet(")
+		wireIndex := strings.Index(updatedContent, "AppSet = wire.NewSet(")
 		if wireIndex != -1 {
 			endIndex := strings.Index(updatedContent[wireIndex:], ")")
 			if endIndex != -1 {
 				insertPos := wireIndex + endIndex
-				updatedContent = updatedContent[:insertPos] + "\n\t" + moduleName + ".Module," + "\n" + updatedContent[insertPos:]
+				updatedContent = updatedContent[:insertPos] + "\n\t" + regLine + updatedContent[insertPos:]
 			}
 		}
 	}

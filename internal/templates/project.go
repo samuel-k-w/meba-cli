@@ -123,14 +123,15 @@ MIT License
 `, projectName, projectName)
 }
 
-func MainGo() string {
-	return `package main
+func MainGo(projectName string) string {
+	return fmt.Sprintf(`package main
 
 import (
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"%s/internal"
 )
 
 func main() {
@@ -142,7 +143,7 @@ func main() {
 	r := gin.Default()
 
 	// Initialize application
-	app, cleanup, err := InitializeApp()
+	app, cleanup, err := internal.InitializeApp()
 	if err != nil {
 		log.Fatal("Failed to initialize app:", err)
 	}
@@ -156,7 +157,7 @@ func main() {
 	if err := r.Run(":8080"); err != nil {
 		logger.Fatal("Failed to start server", zap.Error(err))
 	}
-}`
+}`, projectName)
 }
 
 func AppGo() string {
@@ -345,16 +346,15 @@ func WireGo() string {
 	return `//go:build wireinject
 // +build wireinject
 
-package main
+package internal
 
 import (
 	"github.com/google/wire"
-	"myapp/internal"
 )
 
 // InitializeApp initializes the application with dependency injection
-func InitializeApp() (*internal.App, func(), error) {
-	wire.Build(internal.AppSet)
+func InitializeApp() (*App, func(), error) {
+	wire.Build(AppSet)
 	return nil, nil, nil
 }
 `
