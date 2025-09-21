@@ -24,6 +24,7 @@ func CreateProject(name, targetDir string, skipGit, skipInstall bool) error {
 		"configs",
 		"scripts",
 		"deployments",
+		"docs",
 	}
 
 	for _, dir := range dirs {
@@ -55,6 +56,7 @@ func CreateProject(name, targetDir string, skipGit, skipInstall bool) error {
 		"configs/config.go":         templates.ConfigGo(),
 		"internal/handlers_test.go": templates.HandlersTestGo(),
 		"internal/service_test.go":  templates.ServiceTestGo(),
+		"docs/docs.go":              templates.SwaggerDocsGo(name),
 		".air.toml":                 templates.AirToml(),
 		".gitignore":                templates.GitIgnore(),
 		"Dockerfile":                templates.Dockerfile(),

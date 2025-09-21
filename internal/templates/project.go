@@ -22,6 +22,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/swaggo/swag v1.16.2
 	github.com/swaggo/gin-swagger v1.6.0
+	github.com/swaggo/files v1.0.1
 	github.com/stretchr/testify v1.8.4
 	github.com/prometheus/client_golang v1.17.0
 )
@@ -133,7 +134,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"%s/internal"
+	"%s/docs"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/files"
 )
+
+// @title %s API
+// @version 1.0
+// @description A Gin API project inspired by NestJS architecture
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api/v1
+// @schemes http https
 
 func main() {
 	// Initialize logger
@@ -150,15 +170,19 @@ func main() {
 	}
 	defer cleanup()
 
+	// Setup Swagger
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(files.Handler))
+
 	// Setup routes
 	app.SetupRoutes(r)
 
 	// Start server
 	logger.Info("Starting server on :8080")
+	logger.Info("Swagger docs available at: http://localhost:8080/swagger/index.html")
 	if err := r.Run(":8080"); err != nil {
 		logger.Fatal("Failed to start server", zap.Error(err))
 	}
-}`, projectName)
+}`, projectName, projectName, projectName)
 }
 
 func AppGo() string {
@@ -220,8 +244,15 @@ func (h *Handlers) SetupRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	
 	// Health check
+	// @Summary Health Check
+	// @Description Check if the API is running
+	// @Tags health
+	// @Accept json
+	// @Produce json
+	// @Success 200 {object} map[string]string
+	// @Router /health [get]
 	api.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
+		c.JSON(200, gin.H{"status": "ok", "message": "Server is running"})
 	})
 
 	// Setup module routes here

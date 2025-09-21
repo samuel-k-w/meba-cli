@@ -37,3 +37,15 @@ release:
 	@echo "🚀 Creating release..."
 	@git tag -a v$(VERSION) -m "Release v$(VERSION)"
 	@git push origin v$(VERSION)
+
+.PHONY: swagger
+swagger:
+	@echo "📚 Generating Swagger documentation..."
+	@swag init -g cmd/server/main.go -o docs/
+	@echo "✅ Swagger docs generated in docs/"
+
+.PHONY: swagger-install
+swagger-install:
+	@echo "📦 Installing swag CLI..."
+	@go install github.com/swaggo/swag/cmd/swag@latest
+	@echo "✅ Swag CLI installed"
