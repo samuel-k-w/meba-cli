@@ -151,9 +151,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-- 📖 [Documentation](https://github.com/meba-cli/meba/wiki)
-- 🐛 [Issues](https://github.com/meba-cli/meba/issues)
-- 💬 [Discussions](https://github.com/meba-cli/meba/discussions)
+- 📖 [Documentation](https://github.com/samuel-k-w/meba-cli/wiki)
+- 🐛 [Issues](https://github.com/samuel-k-w/meba-cli/issues)
+- 💬 [Discussions](https://github.com/samuel-k-w/meba-cli/discussions)
 
 ---
 

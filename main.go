@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/meba-cli/meba/cmd"
+	"github.com/samuel-k-w/meba-cli/cmd"
 )
 
 func main() {
