@@ -53,6 +53,8 @@ func CreateProject(name, targetDir string, skipGit bool) error {
 		"pkg/validator/validator.go": templates.ValidatorGo(),
 		"configs/config.yaml":       templates.ConfigYaml(),
 		"configs/config.go":         templates.ConfigGo(),
+		"internal/handlers_test.go": templates.HandlersTestGo(),
+		"internal/service_test.go":  templates.ServiceTestGo(),
 		".air.toml":                 templates.AirToml(),
 		".gitignore":                templates.GitIgnore(),
 		"Dockerfile":                templates.Dockerfile(),
