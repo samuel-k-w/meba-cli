@@ -65,6 +65,13 @@ func GenerateHandler(name string, dryRun, flat, noSpec bool) error {
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
 		return fmt.Errorf("failed to write handler file: %w", err)
 	}
+	
+	// Create test file
+	testContent := templates.HandlersTestGoModule(name)
+	testFilePath := filepath.Join(modulePath, "handlers_test.go")
+	if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
+		return fmt.Errorf("failed to write handlers_test.go: %w", err)
+	}
 
 	// Update module.go to include handler
 	if err := updateModuleFile(modulePath, name, "handler"); err != nil {
@@ -93,6 +100,13 @@ func GenerateService(name string, dryRun, flat, noSpec bool) error {
 	
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
 		return fmt.Errorf("failed to write service file: %w", err)
+	}
+	
+	// Create test file
+	testContent := templates.ServiceTestGoModule(name)
+	testFilePath := filepath.Join(modulePath, "service_test.go")
+	if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
+		return fmt.Errorf("failed to write service_test.go: %w", err)
 	}
 
 	// Update module.go to include service
@@ -123,6 +137,13 @@ func GenerateRepository(name string, dryRun, flat, noSpec bool) error {
 	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
 		return fmt.Errorf("failed to write repository file: %w", err)
 	}
+	
+	// Create test file
+	testContent := templates.RepositoryTestGoModule(name)
+	testFilePath := filepath.Join(modulePath, "repository_test.go")
+	if err := os.WriteFile(testFilePath, []byte(testContent), 0644); err != nil {
+		return fmt.Errorf("failed to write repository_test.go: %w", err)
+	}
 
 	// Update module.go to include repository
 	if err := updateModuleFile(modulePath, name, "repository"); err != nil {
@@ -148,12 +169,15 @@ func GenerateResource(name string, dryRun bool) error {
 
 	// Generate complete resource files
 	files := map[string]string{
-		"module.go":     templates.ModuleGo(name),
-		"handlers.go":   templates.ModuleHandlersGo(name),
-		"service.go":    templates.ModuleServiceGoSimple(name),
-		"repository.go": templates.ModuleRepositoryGoSimple(name),
-		"entity.go":     templates.ModuleEntityGoSimple(name),
-		"dto.go":        templates.ModuleDtoGoSimple(name),
+		"module.go":         templates.ModuleGo(name),
+		"handlers.go":       templates.ModuleHandlersGo(name),
+		"handlers_test.go":  templates.HandlersTestGoModule(name),
+		"service.go":        templates.ModuleServiceGoSimple(name),
+		"service_test.go":   templates.ServiceTestGoModule(name),
+		"repository.go":     templates.ModuleRepositoryGoSimple(name),
+		"repository_test.go": templates.RepositoryTestGoModule(name),
+		"entity.go":         templates.ModuleEntityGoSimple(name),
+		"dto.go":            templates.ModuleDtoGoSimple(name),
 	}
 
 	for fileName, content := range files {
