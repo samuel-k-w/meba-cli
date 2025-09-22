@@ -36,7 +36,7 @@ func generateSwagger() error {
 
 	// Generate swagger docs
 	color.Blue("📚 Generating Swagger documentation...")
-	swagCmd := exec.Command("swag", "init", "-g", "cmd/server/main.go", "-o", "docs/")
+	swagCmd := exec.Command("swag", "init", "-g", "cmd/server/main.go", "-o", "docs/", "--parseDependency", "--parseInternal")
 	swagCmd.Stdout = os.Stdout
 	swagCmd.Stderr = os.Stderr
 	

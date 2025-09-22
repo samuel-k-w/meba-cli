@@ -105,10 +105,17 @@ func updateMainGo(projectPath, moduleName string) error {
 		return err
 	}
 
-	// Replace the import path
+	projectName := strings.Split(moduleName, "/")[len(strings.Split(moduleName, "/"))-1]
+	
+	// Replace the import paths
 	updatedContent := strings.ReplaceAll(string(content), 
-		fmt.Sprintf("\"%s/internal\"", strings.Split(moduleName, "/")[len(strings.Split(moduleName, "/"))-1]),
+		fmt.Sprintf("\"%s/internal\"", projectName),
 		fmt.Sprintf("\"%s/internal\"", moduleName))
+	
+	// Fix docs import path
+	updatedContent = strings.ReplaceAll(updatedContent,
+		fmt.Sprintf("_ \"%s/docs\"", projectName),
+		fmt.Sprintf("_ \"%s/docs\"", moduleName))
 
 	return os.WriteFile(mainGoPath, []byte(updatedContent), 0644)
 }
